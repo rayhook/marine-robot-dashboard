@@ -20,6 +20,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "marine_robot.apps.MarineRobotConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
