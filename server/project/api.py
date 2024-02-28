@@ -65,7 +65,7 @@ class DatapointCreateSchema(Schema):
     ]
 
 
-class DatapointOutchema(Schema):
+class DatapointOutSchema(Schema):
     id: int
     trip_id: int
     lat: Annotated[
@@ -101,6 +101,7 @@ def create_user(request, payload: UserCreateSchema):
     return {"id": user.id, "username": user.username, "email": user.email}
 
 
+# TODO update user_id to user_id of requester
 @api.post("/device/")
 def create_device(request, payload: DeviceCreateSchema):
     device = Device.objects.create(
@@ -163,8 +164,8 @@ def aggData(request, device_id: int):
     return response_data
 
 
-@api.get("/trips/{trip_id}", response=List[DatapointOutchema])
+@api.get("/trips/{trip_id}", response=List[DatapointOutSchema])
 def data_points(request, trip_id: int):
-    data_points_queryset = Datapoint.objects.filter(trip_id=2)
+    data_points_queryset = Datapoint.objects.filter(trip_id=trip_id)
 
     return data_points_queryset
