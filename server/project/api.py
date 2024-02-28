@@ -65,8 +65,29 @@ class DatapointCreateSchema(Schema):
     ]
 
 
-class AggTelemetrySchema(TripOutSchema):
+class DatapointOutchema(Schema):
+    id: int
+    trip_id: int
+    lat: Annotated[
+        Decimal,
+        Field(strict=False, allow_inf_nan=False, decimal_places=6, max_digits=9),
+    ]
+    long: Annotated[
+        Decimal,
+        Field(strict=False, allow_inf_nan=False, decimal_places=6, max_digits=9),
+    ]
+    depth: Annotated[
+        Decimal,
+        Field(strict=False, allow_inf_nan=False, decimal_places=2, max_digits=6),
+    ]
+    temp: Annotated[
+        Decimal,
+        Field(strict=False, allow_inf_nan=False, decimal_places=2, max_digits=5),
+    ]
 
+
+class CombinedSchema(DeviceOutSchema):
+    trips: List[TripOutSchema]
 
 
 @api.post("/user/")
@@ -115,9 +136,35 @@ def create_trip(request, payload: DatapointCreateSchema):
     return {"id": datapoint.id, "device_id": datapoint.trip_id}
 
 
-@api.get("/aggdata/{device_id}", response=List[AggTelemetrySchema])
-def get_agg_data(request, device_id: int):
+@api.get("/comdata/{device_id}", response=CombinedSchema)
+def aggData(request, device_id: int):
     device = get_object_or_404(Device, id=device_id)
-    trips = Trip.objects.filter(device_id=device.id)
+    trips_queryset = Trip.objects.filter(device_id=device.id)
 
-    return trips
+    device_data = DeviceOutSchema(
+        id=device.id,
+        total_distance=device.total_distance,
+        serial_number=device.serial_number,
+        time_since_last_grease=device.time_since_last_grease,
+        user_id=device.user_id,
+    )
+
+    trips_data = [
+        TripOutSchema(
+            id=trip.id,
+            device_id=trip.device_id,
+            distance=trip.distance,
+            duration=trip.duration,
+        )
+        for trip in trips_queryset
+    ]
+    response_data = CombinedSchema(**device_data.dict(), trips=trips_data)
+
+    return response_data
+
+
+@api.get("/trips/{trip_id}", response=List[DatapointOutchema])
+def data_points(request, trip_id: int):
+    data_points_queryset = Datapoint.objects.filter(trip_id=2)
+
+    return data_points_queryset
