@@ -1,20 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchcomData } from "../api/robotTelemetry";
+import { getDeviceData } from "../api/marineTelemetry";
 
 const Dashboard = () => {
   const deviceId = 1;
   const { isPending, error, data } = useQuery({
     queryKey: ["data", deviceId],
-    queryFn: async () => await fetchcomData(deviceId),
+    queryFn: async () => await getDeviceData(deviceId),
   });
 
   if (isPending) return "Loading...";
   if (error) return "An error has occured" + error.message;
-  return (
-    <div className="min-h-screen">
-      <Stats data={data} />
-    </div>
-  );
+  return <Stats data={data} />;
 };
 export default Dashboard;
 
@@ -25,9 +21,10 @@ interface DataType {
   serial_number: string;
   user_id: number;
 }
+
 const Stats = ({ data }: { data: DataType }) => {
   return (
-    <div className="container min-h-screen flex justify-between p-3">
+    <div className="container min-h-screen flex justify-between">
       <div className="bg-red-300 flex flex-col w-1/3 text-center">
         <div>User{data.user_id}</div>
         <div>Travelled: {data.total_distance} meters</div>
