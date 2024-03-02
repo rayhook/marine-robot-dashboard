@@ -164,7 +164,7 @@ def aggData(request, device_id: int):
     return response_data
 
 
-@api.get("/trips/{trip_id}", response=List[DatapointOutSchema])
+@api.get("/datapoints/{trip_id}", response=List[DatapointOutSchema])
 def data_points(request, trip_id: int):
     data_points_queryset = Datapoint.objects.filter(trip_id=trip_id)
 
