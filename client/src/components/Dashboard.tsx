@@ -4,6 +4,7 @@ import { fetchDatapoints } from "../api/TripDatapoints";
 import { useState } from "react";
 
 const Dashboard = () => {
+  const [deviceId, setDeviceId] = useState(1);
   const { isPending, error, data } = useQuery({
     queryKey: ["data", deviceId],
     queryFn: async () => await getDeviceData(deviceId),
@@ -35,14 +36,18 @@ const Stats = ({ deviceData }: { deviceData: DeviceDataType }) => {
   const [showDropDown, setShowDropDown] = useState(false);
   const [tripId, setTripId] = useState(null);
 
-  const handleTripSelect = async (tripId: number) => {
+  const handleTripSelect = async (tripId: number | null) => {
+    setTripId(tripId);
     setShowDropDown((prevState: boolean) => !prevState);
   };
 
-  const { isPending, error, dataPoints } = useQuery({
+  const { isLoading, isError, data } = useQuery({
     queryKey: ["dataPoint", tripId],
     queryFn: async () => fetchDatapoints(tripId),
+    enabled: tripId !== null,
   });
+
+  if (isError) return <div>There was an error</div>;
 
   return (
     <div className="container min-h-screen flex justify-between">
@@ -55,14 +60,33 @@ const Stats = ({ deviceData }: { deviceData: DeviceDataType }) => {
         <div>
           {deviceData.trips.map((trip) => (
             <div
+              key={trip.id}
               className="flex gap-2 bg-slate-300 py-4"
               onClick={() => handleTripSelect(trip.id)}
             >
               <div>trip id {trip.id}</div>
               <div>trip distance {trip.distance}</div>
               <div>trip duration {trip.duration}</div>
-              {showDropDown && (
-                <div className="">{isPending && <>isLoading...</>}</div>
+              {showDropDown && tripId && (
+                <div>
+                  {isLoading ? (
+                    <div>Loading data...</div>
+                  ) : (
+                    data &&
+                    Array.isArray(data) &&
+                    data.map((dataPoint) => (
+                      <div
+                        className="flex flex-col"
+                        key={dataPoint.id}
+                      >
+                        <div>lat: {dataPoint.lat}</div>
+                        <div>long: {dataPoint.long}</div>
+                        <div>depth: {dataPoint.depth}</div>
+                        <div>temp: {dataPoint.temp}</div>
+                      </div>
+                    ))
+                  )}
+                </div>
               )}
             </div>
           ))}
